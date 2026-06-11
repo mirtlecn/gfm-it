@@ -1,0 +1,29 @@
+{
+  "name": "gfm-addons",
+  "version": "0.1.0",
+  "description": "Static assets for GitHub Flavored Markdown rendering.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./manifest.json": "./manifest.json",
+    "./assets/*": "./assets/*"
+  },
+  "files": [
+    "assets/",
+    "index.js",
+    "manifest.json",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "pack:check": "npm pack --dry-run"
+  },
+  "keywords": [
+    "gfm",
+    "markdown",
+    "assets",
+    "css"
+  ],
+  "license": "MIT"
+}
