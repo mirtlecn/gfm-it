@@ -9,6 +9,9 @@ import { assets, getAsset, getAssetContentType, getAssetPath } from '../index.js
 const rootDirectory = fileURLToPath(new URL('..', import.meta.url));
 const expectedKeys = [
   'ravel_gfm_css',
+  'whitey_gfm_css',
+  'newsprint_gfm_css',
+  'github_gfm_css',
   'highlight_light_css',
   'highlight_dark_css',
   'gfm_addons_css',
@@ -32,6 +35,9 @@ test('each manifest file exists in the package', () => {
 
 test('getAssetPath returns stable semantic paths', () => {
   assert.equal(getAssetPath('ravel_gfm_css'), 'assets/ravel-gfm.css');
+  assert.equal(getAssetPath('whitey_gfm_css'), 'assets/whitey-gfm.css');
+  assert.equal(getAssetPath('newsprint_gfm_css'), 'assets/newsprint-gfm.css');
+  assert.equal(getAssetPath('github_gfm_css'), 'assets/github-gfm.css');
   assert.equal(getAssetPath('highlight_light_css'), 'assets/highlight-light.css');
   assert.equal(getAssetPath('highlight_dark_css'), 'assets/highlight-dark.css');
   assert.equal(getAssetPath('gfm_addons_css'), 'assets/gfm-addons.css');

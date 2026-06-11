@@ -5,6 +5,21 @@ export const assets = [
     contentType: 'text/css; charset=utf-8',
   },
   {
+    key: 'whitey_gfm_css',
+    file: 'assets/whitey-gfm.css',
+    contentType: 'text/css; charset=utf-8',
+  },
+  {
+    key: 'newsprint_gfm_css',
+    file: 'assets/newsprint-gfm.css',
+    contentType: 'text/css; charset=utf-8',
+  },
+  {
+    key: 'github_gfm_css',
+    file: 'assets/github-gfm.css',
+    contentType: 'text/css; charset=utf-8',
+  },
+  {
     key: 'highlight_light_css',
     file: 'assets/highlight-light.css',
     contentType: 'text/css; charset=utf-8',
