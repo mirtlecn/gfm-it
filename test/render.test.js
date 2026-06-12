@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { getAsset } from 'gfm-addons';
 import { getGfmAssetUrl, renderMarkdownToHtml } from '../index.js';
 
 const execFileAsync = promisify(execFile);
@@ -42,7 +43,7 @@ test('renderMarkdownToHtml returns a complete HTML document with remote assets b
   assert.match(html, /<html>/);
   assert.match(html, /<title>Hello &lt;World&gt;<\/title>/);
   assert.match(html, /<article class="markdown-body">/);
-  assert.match(html, /https:\/\/cdn\.jsdelivr\.net\/npm\/gfm-addons\/assets\/ravel-gfm\.css/);
+  assert.match(html, new RegExp(getAsset('ravel_gfm_css').remoteUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.doesNotMatch(html, /gfm-addons\.js/);
   assert.doesNotMatch(html, /highlight-light\.css/);
 });
