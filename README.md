@@ -102,9 +102,27 @@ console.log(assets);
 
 ## Go usage
 
-This repository is also a Go module. The Go package embeds `manifest.json` and `assets/*` so Go consumers can read the same asset metadata and files.
+This repository is also a Go module. The Go package embeds `manifest.json` and `assets/*` so Go consumers can read the same asset metadata and files, and it exposes a Markdown renderer for Go services.
 
 ```go
 asset, ok := gfmit.GetAsset("ravel_gfm_css")
 content, asset, err := gfmit.ReadAsset("ravel_gfm_css")
 ```
+
+```go
+html, err := gfmit.RenderMarkdownToHTML("# Hello", gfmit.RenderOptions{
+    Title:         "Hello",
+    Canonical:     "https://example.com/hello",
+    FallbackImage: true,
+    AssetMode:     "local",
+    AssetBaseURL:  "/asset/",
+    FooterHTML:    "Powered by Post",
+    Slots: gfmit.RenderSlots{
+        BodyStart: "<!-- hint: append ?raw to view the raw file -->",
+    },
+})
+```
+
+The Go renderer uses the same wrapper options as the JavaScript API: `Title`, `Canonical`, `FallbackImage`, `CSS`, `AssetMode`, `AssetBaseURL`, `ResolveAssetURL`, `Slots`, `ExtraCSS`, `BodyClass`, and `FooterHTML`. It also derives SEO metadata from YAML front matter with the same priority rules documented above.
+
+The Go implementation intentionally uses the Go Markdown stack used by Post: `goldmark`, GFM, footnotes, GitHub alert callouts, KaTeX, and unsafe raw HTML rendering. Its generated wrapper and resource behavior match the JavaScript API, but the exact article HTML is parser-dependent and is not guaranteed to be byte-for-byte identical to the JavaScript renderer.
