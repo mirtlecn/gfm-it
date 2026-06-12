@@ -107,6 +107,45 @@ func TestRenderMarkdownToHTMLAcceptsCSSHref(t *testing.T) {
 	assertContains(t, queryHTML, `<link rel="stylesheet" href="https://example.com/hi.css?raw=true">`)
 }
 
+func TestRenderMarkdownToHTMLUsesYAMLCSSOverride(t *testing.T) {
+	aliasHTML, err := RenderMarkdownToHTML("---\ngfm_css: github\n---\n# YAML CSS", RenderOptions{AssetMode: "inline", CSS: "folio"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, aliasHTML, `<style data-gfm-asset="github_gfm_css">`)
+	assertNotContains(t, aliasHTML, `data-gfm-asset="folio_gfm_css"`)
+
+	hrefHTML, err := RenderMarkdownToHTML("---\ngfm_css: ../css\n---\n# YAML CSS", RenderOptions{AssetMode: "inline", CSS: "github"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, hrefHTML, `<link rel="stylesheet" href="../css">`)
+	assertNotContains(t, hrefHTML, `data-gfm-asset="github_gfm_css"`)
+
+	fallbackHTML, err := RenderMarkdownToHTML("---\ngfm_css: https://example.com/theme.js\n---\n# YAML CSS", RenderOptions{AssetMode: "inline", CSS: "github"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, fallbackHTML, `<style data-gfm-asset="github_gfm_css">`)
+	assertNotContains(t, fallbackHTML, "theme.js")
+}
+
+func TestRenderMarkdownToHTMLKeepsYAMLThemeAssetsModeAware(t *testing.T) {
+	localThemeHTML, err := RenderMarkdownToHTML("---\ngfm_css: github\n---\n# YAML CSS", RenderOptions{AssetMode: "local", CSS: "folio"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, localThemeHTML, `<link rel="stylesheet" href="/asset/github_gfm_css">`)
+	assertNotContains(t, localThemeHTML, "folio_gfm_css")
+
+	localHrefHTML, err := RenderMarkdownToHTML("---\ngfm_css: ../css\n---\n# YAML CSS", RenderOptions{AssetMode: "local", CSS: "github"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	assertContains(t, localHrefHTML, `<link rel="stylesheet" href="../css">`)
+	assertNotContains(t, localHrefHTML, `/asset/github_gfm_css`)
+}
+
 func TestRenderMarkdownToHTMLSupportsSlotsExtraCSSBodyClassAndFooter(t *testing.T) {
 	html, err := RenderMarkdownToHTML("# One\n\n## Two", RenderOptions{
 		AssetMode:  "local",

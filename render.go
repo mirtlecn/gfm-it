@@ -52,13 +52,13 @@ type normalizedRenderOptions struct {
 
 // RenderMarkdownToHTML converts GitHub Flavored Markdown into a complete HTML document.
 func RenderMarkdownToHTML(markdown string, options RenderOptions) (string, error) {
-	normalized, err := normalizeRenderOptions(options)
-	if err != nil {
-		return "", err
-	}
 	metadata, err := extractMarkdownMetadata(markdown, options)
 	if err != nil {
 		return "", fmt.Errorf("markdown conversion failed: %w", err)
+	}
+	normalized, err := normalizeRenderOptions(options, metadata.CSS)
+	if err != nil {
+		return "", err
 	}
 	htmlBody, err := renderMarkdownBody(metadata.Content)
 	if err != nil {
@@ -73,14 +73,18 @@ func RenderMarkdownToHTML(markdown string, options RenderOptions) (string, error
 	return renderHTMLDocument(metadata, htmlBody, headLinks, bodyScripts, footerHTML, normalized), nil
 }
 
-func normalizeRenderOptions(options RenderOptions) (normalizedRenderOptions, error) {
+func normalizeRenderOptions(options RenderOptions, frontMatterCSS string) (normalizedRenderOptions, error) {
 	assetMode := strings.TrimSpace(options.AssetMode)
 	if assetMode == "" {
 		assetMode = defaultAssetMode
 	}
-	css, cssHref, err := normalizeCSSReference(options.CSS, assetMode)
-	if err != nil {
-		return normalizedRenderOptions{}, err
+	css, cssHref, ok := normalizeFrontMatterCSSReference(frontMatterCSS)
+	if !ok {
+		var err error
+		css, cssHref, err = normalizeCSSReference(options.CSS, assetMode)
+		if err != nil {
+			return normalizedRenderOptions{}, err
+		}
 	}
 	assetBaseURL := options.AssetBaseURL
 	if assetBaseURL == "" {
@@ -177,6 +181,17 @@ func normalizeCSSReference(css string, assetMode string) (string, string, error)
 		return "", "", err
 	}
 	return cssKey, "", nil
+}
+
+func normalizeFrontMatterCSSReference(css string) (string, string, bool) {
+	if strings.TrimSpace(css) == "" {
+		return "", "", false
+	}
+	cssKey, cssHref, err := normalizeCSSReference(css, assetModeRemote)
+	if err != nil {
+		return "", "", false
+	}
+	return cssKey, cssHref, true
 }
 
 func dynamicAssets(htmlBody string, options normalizedRenderOptions) ([]string, []string, error) {

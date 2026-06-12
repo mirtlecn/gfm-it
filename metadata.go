@@ -22,6 +22,7 @@ type markdownMetadata struct {
 	Image         string
 	PublishedTime string
 	ModifiedTime  string
+	CSS           string
 }
 
 func extractMarkdownMetadata(markdown string, options RenderOptions) (markdownMetadata, error) {
@@ -63,6 +64,7 @@ func extractMarkdownMetadata(markdown string, options RenderOptions) (markdownMe
 		Image:         image,
 		PublishedTime: normalizeMetadataValue(frontMatter["date"]),
 		ModifiedTime:  normalizeMetadataValue(frontMatter["update"]),
+		CSS:           normalizeMetadataValue(frontMatter["gfm_css"]),
 	}, nil
 }
 

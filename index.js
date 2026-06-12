@@ -101,6 +101,22 @@ export function normalizeCssReference(css = defaultCssAssetKey, options = {}) {
   return { type: 'asset', key: normalizeCssAssetKey(candidate) };
 }
 
+function normalizeFrontMatterCssReference(css) {
+  const requested = normalizeMetadataValue(css);
+  if (!requested) {
+    return null;
+  }
+  try {
+    return normalizeCssReference(requested, { assetMode: 'remote' });
+  } catch {
+    return null;
+  }
+}
+
+function resolveCssReference(optionCss, frontMatterCss, assetOptions) {
+  return normalizeFrontMatterCssReference(frontMatterCss) || normalizeCssReference(optionCss, assetOptions);
+}
+
 const metadataLexer = new Marked({ gfm: true, breaks: false });
 
 function createMarkdownRenderer() {
@@ -274,7 +290,11 @@ function resolveFallbackImage({ fallbackImage, canonical, title, description, co
 }
 
 function extractMarkdownMetadata(markdown, options = {}) {
-  const { content, frontMatter } = parseMarkdownDocument(markdown);
+  return extractMarkdownMetadataFromDocument(parseMarkdownDocument(markdown), options);
+}
+
+function extractMarkdownMetadataFromDocument(document, options = {}) {
+  const { content, frontMatter } = document;
   const tokens = metadataLexer.lexer(content);
   const title = normalizeMetadataValue(options.title)
     || normalizeMetadataValue(frontMatter.title)
@@ -301,6 +321,7 @@ function extractMarkdownMetadata(markdown, options = {}) {
     image,
     publishedTime: normalizeMetadataValue(frontMatter.date),
     modifiedTime: normalizeMetadataValue(frontMatter.update),
+    css: normalizeMetadataValue(frontMatter.gfm_css),
   };
 }
 
@@ -502,9 +523,10 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       footerHtml = '',
     } = options;
     const assetOptions = normalizeAssetOptions(options);
-    const cssReference = normalizeCssReference(css, assetOptions);
+    const parsedMarkdown = parseMarkdownDocument(markdown);
+    const metadata = extractMarkdownMetadataFromDocument(parsedMarkdown, { title, canonical, fallbackImage });
+    const cssReference = resolveCssReference(css, metadata.css, assetOptions);
     const normalizedCss = cssReference.type === 'asset' ? cssReference.key : cssReference.href;
-    const metadata = extractMarkdownMetadata(markdown, { title, canonical, fallbackImage });
     const htmlBody = createMarkdownRenderer().parse(metadata.content);
     const normalizedFooterHtml = normalizeFooterHtml(footerHtml);
     const headingCount = countHeadings(htmlBody);

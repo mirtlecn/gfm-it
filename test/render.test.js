@@ -233,15 +233,47 @@ test('renderMarkdownToHtml accepts CSS hrefs in remote asset mode', () => {
   assert.doesNotMatch(html, /ravel-gfm\.min\.css/);
 });
 
-test('renderMarkdownToHtml rejects unsupported CSS assets before parsing markdown', () => {
-  const markdown = {
-    toString() {
-      throw new Error('markdown should not be parsed');
-    },
-  };
+test('renderMarkdownToHtml uses valid YAML CSS over option CSS', () => {
+  const aliasHtml = renderMarkdownToHtml('---\ngfm_css: github\n---\n# YAML CSS', {
+    assetMode: 'inline',
+    css: 'folio',
+  });
+  const hrefHtml = renderMarkdownToHtml('---\ngfm_css: ../css\n---\n# YAML CSS', {
+    assetMode: 'inline',
+    css: 'github',
+  });
+  const fallbackHtml = renderMarkdownToHtml('---\ngfm_css: https://example.com/theme.js\n---\n# YAML CSS', {
+    assetMode: 'inline',
+    css: 'github',
+  });
 
+  assert.match(aliasHtml, /<style data-gfm-asset="github_gfm_css">/);
+  assert.doesNotMatch(aliasHtml, /data-gfm-asset="folio_gfm_css"/);
+  assert.match(hrefHtml, /<link rel="stylesheet" href="\.\.\/css">/);
+  assert.doesNotMatch(hrefHtml, /data-gfm-asset="github_gfm_css"/);
+  assert.match(fallbackHtml, /<style data-gfm-asset="github_gfm_css">/);
+  assert.doesNotMatch(fallbackHtml, /theme\.js/);
+});
+
+test('renderMarkdownToHtml keeps YAML theme assets mode-aware while hrefs stay direct', () => {
+  const localThemeHtml = renderMarkdownToHtml('---\ngfm_css: github\n---\n# YAML CSS', {
+    assetMode: 'local',
+    css: 'folio',
+  });
+  const localHrefHtml = renderMarkdownToHtml('---\ngfm_css: ../css\n---\n# YAML CSS', {
+    assetMode: 'local',
+    css: 'github',
+  });
+
+  assert.match(localThemeHtml, /<link rel="stylesheet" href="\/asset\/github_gfm_css">/);
+  assert.doesNotMatch(localThemeHtml, /folio_gfm_css/);
+  assert.match(localHrefHtml, /<link rel="stylesheet" href="\.\.\/css">/);
+  assert.doesNotMatch(localHrefHtml, /\/asset\/github_gfm_css/);
+});
+
+test('renderMarkdownToHtml rejects unsupported CSS assets without a valid YAML CSS override', () => {
   assert.throws(
-    () => renderMarkdownToHtml(markdown, { css: 'missing' }),
+    () => renderMarkdownToHtml('# Missing', { css: 'missing' }),
     /Unsupported CSS asset: missing/,
   );
   assert.throws(
@@ -249,7 +281,7 @@ test('renderMarkdownToHtml rejects unsupported CSS assets before parsing markdow
     /Unsupported CSS asset: highlight_light_css/,
   );
   assert.throws(
-    () => renderMarkdownToHtml(markdown, { assetMode: 'inline', css: 'https://example.com/hi.css?raw=true' }),
+    () => renderMarkdownToHtml('# Href', { assetMode: 'inline', css: 'https://example.com/hi.css?raw=true' }),
     /CSS hrefs require assetMode remote/,
   );
   assert.throws(

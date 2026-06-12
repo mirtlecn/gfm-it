@@ -200,6 +200,7 @@ renderMarkdownToHtml(markdown, {
 | `og:image` / `twitter:image` | YAML `cover`, YAML `image`, first absolute Markdown image, fallback image |
 | `article:published_time` | YAML `date` |
 | `article:modified_time` | YAML `update` |
+| main CSS | valid YAML `gfm_css`, then option `css` |
 
 ## Options
 
@@ -208,7 +209,7 @@ renderMarkdownToHtml(markdown, {
   title: '',
   canonical: '',
   fallbackImage: false,
-  css: 'ravel_gfm_css', // also accepts ravel, whitey, newsprint, github, folio; remote mode accepts stylesheet hrefs
+  css: 'ravel_gfm_css', // YAML gfm_css overrides when valid; also accepts ravel, whitey, newsprint, github, folio; remote mode accepts stylesheet hrefs
   assetMode: 'remote', // remote | local | inline
   assetBaseUrl: '/asset/',
   resolveAssetUrl: undefined,
@@ -224,7 +225,7 @@ gfmit.RenderOptions{
     Title:         "",
     Canonical:     "",
     FallbackImage: false,
-    CSS:           "ravel_gfm_css", // also accepts ravel, whitey, newsprint, github, folio; remote mode accepts stylesheet hrefs
+    CSS:           "ravel_gfm_css", // YAML gfm_css overrides when valid; also accepts ravel, whitey, newsprint, github, folio; remote mode accepts stylesheet hrefs
     AssetMode:     "remote", // remote | local | inline
     AssetBaseURL:  "/asset/",
     ResolveAssetURL: nil,
