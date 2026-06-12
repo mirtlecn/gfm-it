@@ -231,7 +231,7 @@ test('renderMarkdownToHtml injects a sticky markdown footer', () => {
   const footerHtml = 'footer-e8c3a91f <a href="https://example.test/link-42">link-17b92</a>';
   const html = renderMarkdownToHtml('# One\n\n## Two', { footerHtml });
   const articleEndIndex = html.indexOf('</article>');
-  const tocScriptIndex = html.indexOf('gfm-addons.js');
+  const tocScriptIndex = html.indexOf('gfm-addons.min.js');
   const footerIndex = html.indexOf('<footer class="markdown-body post-footer">');
 
   assert.notEqual(footerIndex, -1);

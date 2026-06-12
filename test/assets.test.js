@@ -12,6 +12,7 @@ import {
   getAssetRemoteUrl,
 } from '../assets.js';
 import { embeddedAssets, getEmbeddedAsset, getEmbeddedAssetContent } from '../embedded.js';
+import { createMinifiedFilePath, minifyAssetContent } from '../scripts/minify-assets.mjs';
 
 const rootDirectory = fileURLToPath(new URL('..', import.meta.url));
 const packageJson = JSON.parse(await readFile(join(rootDirectory, 'package.json'), 'utf8'));
@@ -28,7 +29,7 @@ const expectedKeys = [
 ];
 
 function expectedRemoteUrl(filePath) {
-  return `https://cdn.jsdelivr.net/npm/${packageJson.name}@${packageJson.version}/${filePath}`;
+  return `https://cdn.jsdelivr.net/npm/${packageJson.name}@${packageJson.version}/${createMinifiedFilePath(filePath)}`;
 }
 
 test('exports the expected GFM asset keys', () => {
@@ -53,14 +54,15 @@ test('each manifest file exists in the package source', () => {
   }
 });
 
-test('embedded asset content matches packaged files', async () => {
+test('embedded asset content matches minified packaged files', async () => {
   for (const asset of assets) {
     const fileContent = await readFile(join(rootDirectory, asset.file));
+    const minifiedContent = await minifyAssetContent(asset.file, fileContent);
     const embedded = getEmbeddedAsset(asset.key);
 
-    assert.equal(embedded.contentBase64, fileContent.toString('base64'));
+    assert.equal(embedded.contentBase64, minifiedContent.toString('base64'));
     assert.equal(
-      Buffer.compare(getEmbeddedAssetContent(asset.key, null), fileContent),
+      Buffer.compare(getEmbeddedAssetContent(asset.key, null), minifiedContent),
       0,
       `${asset.key} embedded bytes differ from ${asset.file}`,
     );

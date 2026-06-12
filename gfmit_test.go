@@ -1,9 +1,11 @@
 package gfmit
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"testing"
 )
 
@@ -25,7 +27,15 @@ func expectedRemoteURL(t *testing.T, file string) string {
 		t.Fatalf("Unmarshal(package.json) error = %v", err)
 	}
 
-	return fmt.Sprintf("https://cdn.jsdelivr.net/npm/%s@%s/%s", pkg.Name, pkg.Version, file)
+	return fmt.Sprintf("https://cdn.jsdelivr.net/npm/%s@%s/%s", pkg.Name, pkg.Version, minifiedAssetPath(file))
+}
+
+func minifiedAssetPath(file string) string {
+	extension := path.Ext(file)
+	if extension == "" {
+		return file
+	}
+	return file[:len(file)-len(extension)] + ".min" + extension
 }
 
 func TestAssets(t *testing.T) {
@@ -71,6 +81,31 @@ func TestReadAsset(t *testing.T) {
 	}
 	if len(content) == 0 {
 		t.Fatal("github_gfm_css content is empty")
+	}
+}
+
+func TestEmbeddedAssetContentIsGeneratedSeparatelyFromPackagedSource(t *testing.T) {
+	sourceContent, _, err := ReadAsset("github_gfm_css")
+	if err != nil {
+		t.Fatalf("ReadAsset() error = %v", err)
+	}
+	embeddedContent, err := readEmbeddedAssetContent("github_gfm_css")
+	if err != nil {
+		t.Fatalf("readEmbeddedAssetContent() error = %v", err)
+	}
+	if len(embeddedContent) == 0 {
+		t.Fatal("embedded asset content is empty")
+	}
+	if len(embeddedContent) > len(sourceContent) {
+		t.Fatalf("embedded asset length = %d, source length = %d", len(embeddedContent), len(sourceContent))
+	}
+
+	html, err := RenderMarkdownToHTML("# Hello", RenderOptions{AssetMode: "inline", CSS: "github_gfm_css"})
+	if err != nil {
+		t.Fatalf("RenderMarkdownToHTML() error = %v", err)
+	}
+	if !bytes.Contains([]byte(html), embeddedContent) {
+		t.Fatal("inline HTML does not contain generated embedded asset content")
 	}
 }
 

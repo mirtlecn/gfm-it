@@ -131,6 +131,8 @@ html, err := gfmit.RenderMarkdownToHTML(markdown, gfmit.RenderOptions{
 
 ## Assets
 
+Files under `assets/` are shipped in their source format. Remote mode points at jsDelivr `.min.css` and `.min.js` URLs, and embedded/inline assets are minified during the build without rewriting the source files.
+
 ```js
 import {
   assets,

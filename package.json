@@ -29,7 +29,7 @@
     "build": "node scripts/build.mjs",
     "assets:embed": "npm run build",
     "test": "npm run build && node --test",
-    "version": "npm run build && git add assets assets.js manifest.json embedded.js package.json package-lock.json",
+    "version": "npm run build && git add assets assets.js manifest.json embedded.js embedded_assets.go package.json package-lock.json",
     "prepack": "npm run build",
     "pack:check": "npm pack --dry-run"
   },
@@ -49,5 +49,8 @@
     "marked-highlight": "^2.2.3",
     "vfile": "^6.0.3",
     "vfile-matter": "^5.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
   }
 }

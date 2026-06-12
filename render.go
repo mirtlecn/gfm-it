@@ -145,7 +145,7 @@ func renderStylesheetAsset(key string, options normalizedRenderOptions, media st
 		return "", fmt.Errorf("unknown GFM asset: %s", key)
 	}
 	if options.AssetMode == assetModeInline && options.ResolveAssetURL == nil {
-		content, _, err := ReadAsset(key)
+		content, err := readEmbeddedAssetContent(key)
 		if err != nil {
 			return "", err
 		}
@@ -164,7 +164,7 @@ func renderScriptAsset(key string, options normalizedRenderOptions, deferScript 
 		return "", fmt.Errorf("unknown GFM asset: %s", key)
 	}
 	if options.AssetMode == assetModeInline && options.ResolveAssetURL == nil {
-		content, _, err := ReadAsset(key)
+		content, err := readEmbeddedAssetContent(key)
 		if err != nil {
 			return "", err
 		}
