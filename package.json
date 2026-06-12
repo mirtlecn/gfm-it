@@ -1,6 +1,6 @@
 {
   "name": "gfm-it",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Render GitHub Flavored Markdown into a complete HTML document.",
   "type": "module",
   "main": "index.js",
