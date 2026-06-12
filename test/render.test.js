@@ -77,6 +77,28 @@ update: 2026-06-11T10:20:30Z
   assert.doesNotMatch(articleHtml, /canonical:/);
 });
 
+test('renderMarkdownToHtml renders footnotes after SEO metadata extraction', () => {
+  const html = renderMarkdownToHtml(`---
+title: YAML Footnote Title
+date: 2026-05-26 16:13:25
+update: 2026-05-28 15:34:13
+---
+# Visible
+
+Body with a footnote.[^1]
+
+[^1]: Footnote content.`);
+  const articleHtml = html.slice(html.indexOf('<article class="markdown-body">'), html.indexOf('</article>'));
+
+  assert.match(html, /<title>YAML Footnote Title<\/title>/);
+  assert.match(html, /<meta property="article:published_time" content="2026-05-26 16:13:25">/);
+  assert.match(html, /<meta property="article:modified_time" content="2026-05-28 15:34:13">/);
+  assert.match(articleHtml, /Body with a footnote/);
+  assert.match(articleHtml, /Footnote content/);
+  assert.match(articleHtml, /data-footnotes/);
+  assert.doesNotMatch(articleHtml, /YAML Footnote Title/);
+});
+
 test('renderMarkdownToHtml resolves title priority from options, YAML, heading, then empty', () => {
   const optionTitleHtml = renderMarkdownToHtml('---\ntitle: YAML Title\n---\n# Heading Title', { title: 'Option Title' });
   const yamlTitleHtml = renderMarkdownToHtml('---\ntitle: YAML Title\n---\n# Heading Title');

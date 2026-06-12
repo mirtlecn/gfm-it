@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { Marked } from 'marked';
 import markedAlert from 'marked-alert';
 import markedFootnote from 'marked-footnote';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
@@ -14,19 +14,23 @@ const defaultAssetMode = 'remote';
 const defaultAssetBaseUrl = '/asset/';
 const darkBackgroundColor = '#0d1117';
 
-marked.use(
-  { gfm: true, breaks: false },
-  markedAlert(),
-  markedFootnote(),
-  gfmHeadingId(),
-  markedHighlight({
-    langPrefix: 'hljs language-',
-    highlight(code, lang) {
-      const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-      return hljs.highlight(code, { language }).value;
-    },
-  }),
-);
+const metadataLexer = new Marked({ gfm: true, breaks: false });
+
+function createMarkdownRenderer() {
+  return new Marked(
+    { gfm: true, breaks: false },
+    markedAlert(),
+    markedFootnote(),
+    gfmHeadingId(),
+    markedHighlight({
+      langPrefix: 'hljs language-',
+      highlight(code, lang) {
+        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+        return hljs.highlight(code, { language }).value;
+      },
+    }),
+  );
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -184,7 +188,7 @@ function resolveFallbackImage({ fallbackImage, canonical, title, description, co
 
 function extractMarkdownMetadata(markdown, options = {}) {
   const { content, frontMatter } = parseMarkdownDocument(markdown);
-  const tokens = marked.lexer(content);
+  const tokens = metadataLexer.lexer(content);
   const title = normalizeMetadataValue(options.title)
     || normalizeMetadataValue(frontMatter.title)
     || extractFirstHeading(tokens);
@@ -370,7 +374,7 @@ export function renderMarkdownToHtml(markdown, options = {}) {
     } = options;
     const assetOptions = normalizeAssetOptions(options);
     const metadata = extractMarkdownMetadata(markdown, { title, canonical, fallbackImage });
-    const htmlBody = marked.parse(metadata.content);
+    const htmlBody = createMarkdownRenderer().parse(metadata.content);
     const normalizedFooterHtml = normalizeFooterHtml(footerHtml);
     const headingCount = countHeadings(htmlBody);
     const codeBlocksPresent = hasHighlightedCode(htmlBody);
