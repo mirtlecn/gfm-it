@@ -5,6 +5,7 @@ import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
 import { getAsset } from 'gfm-addons';
+import { createHash } from 'node:crypto';
 import { VFile } from 'vfile';
 import { matter } from 'vfile-matter';
 
@@ -168,6 +169,19 @@ function resolveImage(frontMatter, tokens) {
   return candidates.find((value) => value && isHttpUrl(value)) || '';
 }
 
+function createStableImageSeed(value) {
+  return createHash('sha256').update(value || 'gfm-it').digest('hex').slice(0, 16);
+}
+
+function resolveFallbackImage({ fallbackImage, canonical, title, description, content }) {
+  if (!fallbackImage) {
+    return '';
+  }
+
+  const seed = createStableImageSeed(canonical || title || description || content);
+  return `https://picsum.photos/seed/${seed}/1200/630.jpg?grayscale`;
+}
+
 function extractMarkdownMetadata(markdown, options = {}) {
   const { content, frontMatter } = parseMarkdownDocument(markdown);
   const tokens = marked.lexer(content);
@@ -178,6 +192,14 @@ function extractMarkdownMetadata(markdown, options = {}) {
     || normalizeMetadataValue(frontMatter.summary)
     || truncateText(extractTextFromTokens(tokens), 160);
   const canonical = normalizeMetadataValue(options.canonical) || normalizeMetadataValue(frontMatter.canonical);
+  const image = resolveImage(frontMatter, tokens)
+    || resolveFallbackImage({
+      fallbackImage: options.fallbackImage,
+      canonical,
+      title,
+      description,
+      content,
+    });
 
   return {
     content,
@@ -185,7 +207,7 @@ function extractMarkdownMetadata(markdown, options = {}) {
     title,
     description: truncateText(description, 160),
     canonical,
-    image: resolveImage(frontMatter, tokens),
+    image,
     publishedTime: normalizeMetadataValue(frontMatter.date),
     modifiedTime: normalizeMetadataValue(frontMatter.update),
   };
@@ -339,6 +361,7 @@ export function renderMarkdownToHtml(markdown, options = {}) {
     const {
       title = '',
       canonical = '',
+      fallbackImage = false,
       css = defaultCssAssetKey,
       slots = {},
       extraCss = '',
@@ -346,7 +369,7 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       footerHtml = '',
     } = options;
     const assetOptions = normalizeAssetOptions(options);
-    const metadata = extractMarkdownMetadata(markdown, { title, canonical });
+    const metadata = extractMarkdownMetadata(markdown, { title, canonical, fallbackImage });
     const htmlBody = marked.parse(metadata.content);
     const normalizedFooterHtml = normalizeFooterHtml(footerHtml);
     const headingCount = countHeadings(htmlBody);

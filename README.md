@@ -12,6 +12,7 @@ import { renderMarkdownToHtml } from 'gfm-it';
 const html = renderMarkdownToHtml('# Hello', {
   title: 'Hello',
   canonical: 'https://example.com/hello',
+  fallbackImage: true,
   assetMode: 'remote',
 });
 ```
@@ -34,6 +35,7 @@ const html = renderMarkdownToHtml('# Hello', {
 ```bash
 gfm-it README.md --title README --output README.html
 gfm-it README.md --canonical https://example.com/readme
+gfm-it README.md --fallback-image true
 gfm-it README.md --asset-mode local --asset-base-url /asset/
 gfm-it README.md --footer-html '<a href="/">Home</a>'
 printf '# Hello\n' | gfm-it --title Hello
@@ -46,6 +48,7 @@ gfm-it --help
 renderMarkdownToHtml(markdown, {
   title = '',
   canonical = '',
+  fallbackImage = false,
   css = 'ravel_gfm_css',
   assetMode = 'remote',
   assetBaseUrl = '/asset/',
@@ -62,6 +65,7 @@ renderMarkdownToHtml(markdown, {
 - Title: `title` option, then `yaml.title`, then the first Markdown heading.
 - Canonical URL: `canonical` option, then `yaml.canonical`; when present, emits canonical and `og:url`.
 - Image: `yaml.cover`, then `yaml.image`, then the first absolute `http(s)` Markdown image; when present, emits OpenGraph and Twitter image tags.
+- Fallback image: when `fallbackImage` is `true` and no image is found, emits a stable grayscale Picsum image based on the document metadata.
 - Description: `yaml.description`, then `yaml.summary`, then body plain text truncated to 160 characters.
 - Dates: `yaml.date` emits `article:published_time`; `yaml.update` emits `article:modified_time`.
 

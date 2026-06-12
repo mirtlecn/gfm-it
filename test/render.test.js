@@ -120,6 +120,27 @@ image: https://example.test/image.png
   assert.match(relativeImageHtml, /<meta name="twitter:card" content="summary">/);
 });
 
+test('renderMarkdownToHtml uses a stable grayscale Picsum fallback image only when enabled', () => {
+  const markdown = '# Hello\n\nBody without an image.';
+  const defaultHtml = renderMarkdownToHtml(markdown);
+  const fallbackHtml = renderMarkdownToHtml(markdown, { fallbackImage: true });
+  const repeatedFallbackHtml = renderMarkdownToHtml(markdown, { fallbackImage: true });
+  const yamlImageHtml = renderMarkdownToHtml('---\nimage: https://example.test/image.png\n---\n# Hello', {
+    fallbackImage: true,
+  });
+  const imageMatch = fallbackHtml.match(/<meta property="og:image" content="(https:\/\/picsum\.photos\/seed\/[a-f0-9]{16}\/1200\/630\.jpg\?grayscale)">/);
+  const repeatedImageMatch = repeatedFallbackHtml.match(/<meta property="og:image" content="(https:\/\/picsum\.photos\/seed\/[a-f0-9]{16}\/1200\/630\.jpg\?grayscale)">/);
+
+  assert.doesNotMatch(defaultHtml, /picsum\.photos/);
+  assert.ok(imageMatch);
+  assert.ok(repeatedImageMatch);
+  assert.equal(imageMatch[1], repeatedImageMatch[1]);
+  assert.match(fallbackHtml, /<meta name="twitter:card" content="summary_large_image">/);
+  assert.match(fallbackHtml, new RegExp(`<meta name="twitter:image" content="${imageMatch[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}">`));
+  assert.match(yamlImageHtml, /<meta property="og:image" content="https:\/\/example\.test\/image\.png">/);
+  assert.doesNotMatch(yamlImageHtml, /picsum\.photos/);
+});
+
 test('renderMarkdownToHtml falls back to a 160 character plain text description', () => {
   const bodyText = `${'A'.repeat(100)} ${'B'.repeat(100)}`;
   const html = renderMarkdownToHtml(`# Title
@@ -221,6 +242,7 @@ test('CLI prints help with --help and -h', async () => {
 
   assert.match(help.stdout, /^Usage: gfm-it \[file\] \[options\]/);
   assert.match(help.stdout, /--canonical <url>/);
+  assert.match(help.stdout, /--fallback-image <true\|false>/);
   assert.match(shortHelp.stdout, /^Usage: gfm-it \[file\] \[options\]/);
 });
 
@@ -262,4 +284,24 @@ test('CLI accepts a canonical URL', async () => {
   assert.match(result.stdout, /<link rel="canonical" href="https:\/\/example\.test\/stdin">/);
   assert.match(result.stdout, /<meta property="og:url" content="https:\/\/example\.test\/stdin">/);
   assert.equal(result.stderr, '');
+});
+
+test('CLI accepts the fallback image boolean option', async () => {
+  const result = await runCliWithInput(['--fallback-image', 'true'], '# From stdin');
+  const falseResult = await runCliWithInput(['--fallback-image', 'false'], '# From stdin');
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /<meta property="og:image" content="https:\/\/picsum\.photos\/seed\/[a-f0-9]{16}\/1200\/630\.jpg\?grayscale">/);
+  assert.match(result.stdout, /<meta name="twitter:card" content="summary_large_image">/);
+  assert.equal(result.stderr, '');
+  assert.equal(falseResult.code, 0);
+  assert.doesNotMatch(falseResult.stdout, /picsum\.photos/);
+  assert.equal(falseResult.stderr, '');
+});
+
+test('CLI rejects invalid fallback image boolean values', async () => {
+  const result = await runCliWithInput(['--fallback-image', 'yes'], '# From stdin');
+
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /--fallback-image must be true or false, got: yes/);
 });

@@ -16,6 +16,7 @@ Options:
   -o, --output <path>          Write HTML to a file instead of stdout.
   --title <title>              Set the HTML document title.
   --canonical <url>            Set the canonical URL and og:url.
+  --fallback-image <true|false> Use a stable grayscale Picsum image when no image is found. Default: false.
   --css <assetKey>             Select the main gfm-addons CSS asset. Default: ravel_gfm_css.
   --asset-mode <remote|local>  Use remote CDN assets or local asset routes. Default: remote.
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
@@ -49,12 +50,23 @@ function readRequiredValue(args, index, optionName) {
   return value;
 }
 
+function parseBooleanValue(value, optionName) {
+  if (value === 'true') {
+    return true;
+  }
+  if (value === 'false') {
+    return false;
+  }
+  throw new Error(`${optionName} must be true or false, got: ${value}`);
+}
+
 function parseArgs(args) {
   const parsed = {
     file: '',
     output: '',
     title: '',
     canonical: '',
+    fallbackImage: false,
     css: 'ravel_gfm_css',
     assetMode: 'remote',
     assetBaseUrl: '/asset/',
@@ -83,6 +95,11 @@ function parseArgs(args) {
     }
     if (arg === '--canonical') {
       parsed.canonical = readRequiredValue(args, index, arg);
+      index += 1;
+      continue;
+    }
+    if (arg === '--fallback-image') {
+      parsed.fallbackImage = parseBooleanValue(readRequiredValue(args, index, arg), arg);
       index += 1;
       continue;
     }
@@ -151,6 +168,7 @@ async function main() {
     const html = renderMarkdownToHtml(markdown, {
       title: args.title,
       canonical: args.canonical,
+      fallbackImage: args.fallbackImage,
       css: args.css,
       assetMode: args.assetMode,
       assetBaseUrl: args.assetBaseUrl,
