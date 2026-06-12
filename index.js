@@ -4,10 +4,18 @@ import markedFootnote from 'marked-footnote';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
-import { getAsset } from 'gfm-addons';
+import { getAsset } from './assets.js';
 import { createHash } from 'node:crypto';
 import { VFile } from 'vfile';
 import { matter } from 'vfile-matter';
+
+export {
+  assets,
+  getAsset,
+  getAssetPath,
+  getAssetContentType,
+  getAssetRemoteUrl,
+} from './assets.js';
 
 const defaultCssAssetKey = 'ravel_gfm_css';
 const defaultAssetMode = 'remote';

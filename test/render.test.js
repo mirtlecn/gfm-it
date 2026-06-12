@@ -6,8 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { getAsset } from 'gfm-addons';
-import { getGfmAssetUrl, renderMarkdownToHtml } from '../index.js';
+import { getAsset, getGfmAssetUrl, renderMarkdownToHtml } from '../index.js';
 
 const execFileAsync = promisify(execFile);
 const cliPath = fileURLToPath(new URL('../cli.js', import.meta.url));

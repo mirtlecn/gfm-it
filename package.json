@@ -1,6 +1,6 @@
 {
   "name": "gfm-it",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Render GitHub Flavored Markdown into a complete HTML document.",
   "type": "module",
   "main": "index.js",
@@ -9,15 +9,28 @@
   },
   "exports": {
     ".": "./index.js",
-    "./cli": "./cli.js"
+    "./cli": "./cli.js",
+    "./assets": "./assets.js",
+    "./embedded": "./embedded.js",
+    "./embedded.js": "./embedded.js",
+    "./manifest.json": "./manifest.json",
+    "./assets/*": "./assets/*"
   },
   "files": [
+    "assets/",
+    "assets.js",
     "cli.js",
+    "embedded.js",
     "index.js",
+    "manifest.json",
     "README.md"
   ],
   "scripts": {
-    "test": "node --test",
+    "build": "node scripts/build.mjs",
+    "assets:embed": "npm run build",
+    "test": "npm run build && node --test",
+    "version": "npm run build && git add assets assets.js manifest.json embedded.js package.json package-lock.json",
+    "prepack": "npm run build",
     "pack:check": "npm pack --dry-run"
   },
   "keywords": [
@@ -28,7 +41,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "gfm-addons": "^0.1.3",
     "highlight.js": "^11.11.1",
     "marked": "^18.0.5",
     "marked-alert": "^2.1.2",
