@@ -20,6 +20,7 @@ Options:
   --asset-base-url <url>       Base URL for local asset mode. Default: /asset/.
   --extra-css <css>            Append raw CSS inside the generated style block.
   --body-class <class>         Add a class attribute to the generated body.
+  --footer-html <html>         Append raw HTML in a sticky markdown footer.
 `;
 
 function fail(message) {
@@ -57,6 +58,7 @@ function parseArgs(args) {
     assetBaseUrl: '/asset/',
     extraCss: '',
     bodyClass: '',
+    footerHtml: '',
     help: false,
   };
 
@@ -102,6 +104,11 @@ function parseArgs(args) {
       index += 1;
       continue;
     }
+    if (arg === '--footer-html') {
+      parsed.footerHtml = readRequiredValue(args, index, arg);
+      index += 1;
+      continue;
+    }
     if (arg.startsWith('-')) {
       throw new Error(`Unknown option: ${arg}`);
     }
@@ -141,6 +148,7 @@ async function main() {
       assetBaseUrl: args.assetBaseUrl,
       extraCss: args.extraCss,
       bodyClass: args.bodyClass,
+      footerHtml: args.footerHtml,
     });
 
     if (args.output) {

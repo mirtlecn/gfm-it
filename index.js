@@ -85,6 +85,19 @@ function bodyClassAttribute(bodyClass) {
   return bodyClass ? ` class="${escapeHtml(bodyClass)}"` : '';
 }
 
+function normalizeFooterHtml(footerHtml) {
+  if (footerHtml === undefined || footerHtml === null) {
+    return '';
+  }
+  return String(footerHtml).trim();
+}
+
+function renderFooterMarkup(footerHtml) {
+  return footerHtml ? `<footer class="markdown-body post-footer">
+${footerHtml}
+</footer>` : '';
+}
+
 export function getGfmAssetUrl(key, options = {}) {
   const asset = getAsset(key);
   const { assetMode, assetBaseUrl, resolveAssetUrl } = normalizeAssetOptions(options);
@@ -119,9 +132,11 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       slots = {},
       extraCss = '',
       bodyClass = '',
+      footerHtml = '',
     } = options;
     const assetOptions = normalizeAssetOptions(options);
     const htmlBody = marked.parse(stripFrontMatter(markdown));
+    const normalizedFooterHtml = normalizeFooterHtml(footerHtml);
     const headingCount = countHeadings(htmlBody);
     const codeBlocksPresent = hasHighlightedCode(htmlBody);
     const headLinks = [stylesheetLink(getGfmAssetUrl(css, assetOptions))];
@@ -143,9 +158,20 @@ export function renderMarkdownToHtml(markdown, options = {}) {
       htmlBody,
       headingCount,
       codeBlocksPresent,
+      footerHtml: normalizedFooterHtml,
+      footerEnabled: Boolean(normalizedFooterHtml),
       assetMode: assetOptions.assetMode,
       assetBaseUrl: assetOptions.assetBaseUrl,
     };
+    const footerStyle = normalizedFooterHtml ? `
+  .post-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+    padding-top: 48px;
+    text-align: center;
+    font-size: 12px;
+  }` : '';
+    const footerMarkup = renderFooterMarkup(normalizedFooterHtml);
     const extraCssBlock = extraCss ? `\n${extraCss}\n` : '';
 
     return `<!doctype html>
@@ -160,8 +186,11 @@ ${headLinks.join('\n')}
     box-sizing: border-box;
     min-width: 200px;
     max-width: 838px;
+    ${normalizedFooterHtml ? 'min-height: 100vh;' : ''}
     margin: 0 auto;
     padding: 45px;
+    ${normalizedFooterHtml ? 'display: flex;' : ''}
+    ${normalizedFooterHtml ? 'flex-direction: column;' : ''}
   }
   .markdown-body .markdown-alert {
     padding: 0.5rem 1rem;
@@ -177,6 +206,7 @@ ${headLinks.join('\n')}
       padding: 25px;
     }
   }${extraCssBlock}
+${footerStyle}
 </style>
 ${renderSlot(slots, 'headEnd', context)}
 </head>
@@ -188,6 +218,7 @@ ${htmlBody}
 </article>
 ${renderSlot(slots, 'articleAfter', context)}
 ${bodyScripts.join('\n')}
+${footerMarkup}
 ${renderSlot(slots, 'bodyEnd', context)}
 </body>
 </html>`;

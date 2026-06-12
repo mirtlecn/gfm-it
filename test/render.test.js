@@ -90,6 +90,31 @@ test('renderMarkdownToHtml supports slots, extra CSS, and body classes', () => {
   assert.match(html, /\.custom \{ color: red; \}/);
 });
 
+test('renderMarkdownToHtml injects a sticky markdown footer', () => {
+  const footerHtml = 'footer-e8c3a91f <a href="https://example.test/link-42">link-17b92</a>';
+  const html = renderMarkdownToHtml('# One\n\n## Two', { footerHtml });
+  const articleEndIndex = html.indexOf('</article>');
+  const tocScriptIndex = html.indexOf('gfm-addons.js');
+  const footerIndex = html.indexOf('<footer class="markdown-body post-footer">');
+
+  assert.notEqual(footerIndex, -1);
+  assert.ok(articleEndIndex < footerIndex);
+  assert.ok(tocScriptIndex < footerIndex);
+  assert.match(html, /min-height: 100vh;/);
+  assert.match(html, /display: flex;/);
+  assert.match(html, /flex-direction: column;/);
+  assert.match(html, /\.post-footer \{\n    flex-shrink: 0;\n    margin-top: auto;\n    padding-top: 48px;\n    text-align: center;\n    font-size: 12px;\n  \}/);
+  assert.match(html, /<footer class="markdown-body post-footer">\nfooter-e8c3a91f <a href="https:\/\/example\.test\/link-42">link-17b92<\/a>\n<\/footer>/);
+});
+
+test('renderMarkdownToHtml omits the sticky footer for blank footer HTML', () => {
+  const html = renderMarkdownToHtml('# Hello', { footerHtml: '   ' });
+
+  assert.doesNotMatch(html, /post-footer/);
+  assert.doesNotMatch(html, /min-height: 100vh;/);
+  assert.doesNotMatch(html, /display: flex;/);
+});
+
 test('getGfmAssetUrl supports custom resolver and local base URL', () => {
   assert.equal(
     getGfmAssetUrl('ravel_gfm_css', { assetMode: 'local', assetBaseUrl: '/static/assets' }),
@@ -136,4 +161,13 @@ test('CLI renders a file to an output path', async () => {
 
   assert.match(html, /File input/);
   assert.match(html, /href="\/asset\/ravel_gfm_css"/);
+});
+
+test('CLI accepts raw footer HTML', async () => {
+  const result = await runCliWithInput(['--footer-html', '<strong>CLI footer</strong>'], '# From stdin');
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /<footer class="markdown-body post-footer">\n<strong>CLI footer<\/strong>\n<\/footer>/);
+  assert.match(result.stdout, /min-height: 100vh;/);
+  assert.equal(result.stderr, '');
 });
