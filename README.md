@@ -2,9 +2,31 @@
 
 Render GitHub Flavored Markdown into a complete HTML document.
 
-`gfm-it` owns the Markdown renderer and the HTML wrapper. Consumers still build their own business Markdown before rendering, and can use slots to inject app-specific HTML around the generated article.
+The package ships both the renderer and the GFM assets. Use `local` assets when a server exposes `/asset/<key>`, and `inline` assets when the HTML should stand alone.
 
-## JavaScript usage
+## CLI
+
+```bash
+# CLI defaults to inline assets, so the output HTML can be opened directly.
+gfm-it README.md --title README --output README.html
+
+# SEO metadata.
+gfm-it post.md \
+  --canonical https://example.com/post \
+  --fallback-image true \
+  --output post.html
+
+# Use server-hosted assets instead of inline assets.
+gfm-it post.md --asset-mode local --asset-base-url /asset/ --output post.html
+
+# Use CDN assets.
+gfm-it post.md --asset-mode remote --output post.html
+
+# Read from stdin.
+printf '# Hello\n' | gfm-it --title Hello
+```
+
+## JavaScript
 
 ```js
 import { renderMarkdownToHtml } from 'gfm-it';
@@ -13,87 +35,101 @@ const html = renderMarkdownToHtml('# Hello', {
   title: 'Hello',
   canonical: 'https://example.com/hello',
   fallbackImage: true,
+
+  // API default: remote. CLI default: inline.
   assetMode: 'remote',
 });
 ```
 
-Inline asset mode emits a self-contained HTML document with packaged CSS and JavaScript inserted directly into the output.
-
 ```js
-const html = renderMarkdownToHtml('# Hello', {
+const html = renderMarkdownToHtml(markdown, {
+  // Self-contained HTML: CSS and JS are inserted as <style> and <script>.
   assetMode: 'inline',
 });
 ```
 
-Local asset mode keeps URLs compatible with servers that expose GFM assets at `/asset/<key>`.
-
 ```js
-const html = renderMarkdownToHtml('# Hello', {
+const html = renderMarkdownToHtml(markdown, {
+  // Compatible with servers that expose packaged assets at /asset/<key>.
   assetMode: 'local',
   assetBaseUrl: '/asset/',
-  footerHtml: 'Powered by Post',
+
+  // Raw HTML insertion points around the generated article.
   slots: {
+    headEnd: '<meta name="robots" content="index,follow">',
     bodyStart: '<!-- hint: append ?raw to view the raw file -->',
+    articleBefore: '<nav><a href="/">Home</a></nav>',
+    articleAfter: '<hr>',
+    bodyEnd: '<script>console.log("done")</script>',
+  },
+
+  extraCss: '.markdown-body { scroll-margin-top: 2rem; }',
+  bodyClass: 'post-page',
+  footerHtml: '<a href="/">Home</a>',
+});
+```
+
+```js
+const html = renderMarkdownToHtml(markdown, {
+  // Resolver wins over assetMode and assetBaseUrl.
+  resolveAssetUrl(asset) {
+    return `/static/gfm/${asset.key}`;
   },
 });
 ```
 
-## CLI usage
+## Go
 
-```bash
-gfm-it README.md --title README --output README.html
-gfm-it README.md --canonical https://example.com/readme
-gfm-it README.md --fallback-image true
-gfm-it README.md --asset-mode inline
-gfm-it README.md --asset-mode local --asset-base-url /asset/
-gfm-it README.md --asset-mode remote
-gfm-it README.md --footer-html '<a href="/">Home</a>'
-printf '# Hello\n' | gfm-it --title Hello
-gfm-it --help
+```go
+package main
+
+import gfmit "github.com/mirtlecn/gfm-it"
+
+func render(markdown string) (string, error) {
+    return gfmit.RenderMarkdownToHTML(markdown, gfmit.RenderOptions{
+        Title:         "Hello",
+        Canonical:     "https://example.com/hello",
+        FallbackImage: true,
+
+        // Go API default: remote.
+        AssetMode: "remote",
+    })
+}
 ```
 
-## API
+```go
+html, err := gfmit.RenderMarkdownToHTML(markdown, gfmit.RenderOptions{
+    // Match a server route such as /asset/ravel_gfm_css.
+    AssetMode:    "local",
+    AssetBaseURL: "/asset/",
 
-```js
-renderMarkdownToHtml(markdown, {
-  title = '',
-  canonical = '',
-  fallbackImage = false,
-  css = 'ravel_gfm_css',
-  assetMode = 'remote',
-  assetBaseUrl = '/asset/',
-  resolveAssetUrl,
-  slots = {},
-  extraCss = '',
-  bodyClass = '',
-  footerHtml = '',
-} = {})
+    Slots: gfmit.RenderSlots{
+        HeadEnd:   `<meta name="robots" content="index,follow">`,
+        BodyStart: `<!-- hint: append ?raw to view the raw file -->`,
+    },
+    ExtraCSS:   `.markdown-body { scroll-margin-top: 2rem; }`,
+    BodyClass:  "post-page",
+    FooterHTML: `<a href="/">Home</a>`,
+})
 ```
 
-`gfm-it` automatically derives lightweight SEO metadata from YAML front matter and the Markdown body. YAML front matter is never rendered in the article.
+```go
+html, err := gfmit.RenderMarkdownToHTML(markdown, gfmit.RenderOptions{
+    // Self-contained HTML.
+    AssetMode: "inline",
+})
+```
 
-- Title: `title` option, then `yaml.title`, then the first Markdown heading.
-- Canonical URL: `canonical` option, then `yaml.canonical`; when present, emits canonical and `og:url`.
-- Image: `yaml.cover`, then `yaml.image`, then the first absolute `http(s)` Markdown image; when present, emits OpenGraph and Twitter image tags.
-- Fallback image: when `fallbackImage` is `true` and no image is found, emits a stable grayscale Picsum image based on the document metadata.
-- Description: `yaml.description`, then `yaml.summary`, then body plain text truncated to 160 characters.
-- Dates: `yaml.date` emits `article:published_time`; `yaml.update` emits `article:modified_time`.
+```go
+html, err := gfmit.RenderMarkdownToHTML(markdown, gfmit.RenderOptions{
+    // Resolver wins over AssetMode and AssetBaseURL.
+    ResolveAssetURL: func(asset gfmit.Asset) (string, error) {
+        return "/static/gfm/" + asset.Key, nil
+    },
+})
+```
 
-The generated head includes key OpenGraph and Twitter Card tags: `og:type`, `og:title`, `og:description`, `og:url`, `og:image`, `twitter:card`, `twitter:title`, `twitter:description`, and `twitter:image` when their source data is available.
-
-`assetMode: 'remote'` uses versioned jsDelivr URLs for files shipped by `gfm-it`. `assetMode: 'local'` emits local URLs such as `/asset/ravel_gfm_css`. `resolveAssetUrl(asset)` overrides asset URL generation for all modes.
-
-`assetMode: 'inline'` embeds packaged CSS and JavaScript directly into the HTML with `<style data-gfm-asset="...">` and `<script data-gfm-asset="...">`. The CLI defaults to inline mode so generated HTML can be opened without a companion asset server.
-
-Slots are raw HTML strings or functions that return raw HTML. Supported slots are `headEnd`, `bodyStart`, `articleBefore`, `articleAfter`, and `bodyEnd`.
-
-`footerHtml` is inserted as raw HTML inside `<footer class="markdown-body post-footer">`. When present, `gfm-it` applies the same sticky footer layout used by Post: the body becomes a full-height flex column, and the footer sits at the bottom with centered 12px text and 48px top padding.
-
-The renderer includes table-of-contents assets only when the rendered document has at least two headings. Highlight CSS is included only when highlighted code blocks are present.
-
-## Asset usage
-
-`gfm-it` ships the GFM CSS and JavaScript assets directly. Consumers can import metadata, remote URLs, or embedded file content from the same package.
+## Assets
 
 ```js
 import {
@@ -105,35 +141,98 @@ import {
 } from 'gfm-it';
 import { getEmbeddedAssetContent } from 'gfm-it/embedded';
 
-console.log(getAssetRemoteUrl('ravel_gfm_css'));
-console.log(getEmbeddedAssetContent('gfm_addons_js'));
-console.log(assets);
+console.log(getAsset('ravel_gfm_css'));
+console.log(getAssetRemoteUrl('gfm_addons_js'));
+console.log(getEmbeddedAssetContent('highlight_js'));
 ```
-
-`gfm-it/manifest.json` contains the same asset metadata, and `gfm-it/assets/*` exposes the raw packaged files for CDN and package subpath consumers.
-
-## Go usage
-
-This repository is also a Go module. The Go package embeds `manifest.json` and `assets/*` so Go consumers can read the same asset metadata and files, and it exposes a Markdown renderer for Go services.
 
 ```go
 asset, ok := gfmit.GetAsset("ravel_gfm_css")
 content, asset, err := gfmit.ReadAsset("ravel_gfm_css")
+allAssets := gfmit.Assets()
+```
+
+## Metadata
+
+```md
+---
+title: YAML Title
+description: Short summary for search previews.
+canonical: https://example.com/posts/yaml-title
+cover: https://example.com/cover.png
+date: 2026-06-10
+update: 2026-06-11T10:20:30Z
+---
+
+# Visible Heading
+
+Article body.
+```
+
+```js
+renderMarkdownToHtml(markdown, {
+  // Priority: option title > YAML title > first Markdown heading > empty.
+  title: 'Option Title',
+
+  // Priority: option canonical > YAML canonical.
+  canonical: 'https://example.com/override',
+
+  // If no YAML cover/image or absolute Markdown image exists,
+  // emit a stable grayscale Picsum social image.
+  fallbackImage: true,
+});
+```
+
+| Output | Source |
+| --- | --- |
+| `<title>` | option `title`, YAML `title`, first heading |
+| canonical / `og:url` | option `canonical`, YAML `canonical` |
+| description / `og:description` | YAML `description`, YAML `summary`, body text |
+| `og:image` / `twitter:image` | YAML `cover`, YAML `image`, first absolute Markdown image, fallback image |
+| `article:published_time` | YAML `date` |
+| `article:modified_time` | YAML `update` |
+
+## Options
+
+```js
+renderMarkdownToHtml(markdown, {
+  title: '',
+  canonical: '',
+  fallbackImage: false,
+  css: 'ravel_gfm_css',
+  assetMode: 'remote', // remote | local | inline
+  assetBaseUrl: '/asset/',
+  resolveAssetUrl: undefined,
+  slots: {},
+  extraCss: '',
+  bodyClass: '',
+  footerHtml: '',
+});
 ```
 
 ```go
-html, err := gfmit.RenderMarkdownToHTML("# Hello", gfmit.RenderOptions{
-    Title:         "Hello",
-    Canonical:     "https://example.com/hello",
-    FallbackImage: true,
-    AssetMode:     "inline",
-    FooterHTML:    "Powered by Post",
-    Slots: gfmit.RenderSlots{
-        BodyStart: "<!-- hint: append ?raw to view the raw file -->",
-    },
-})
+gfmit.RenderOptions{
+    Title:         "",
+    Canonical:     "",
+    FallbackImage: false,
+    CSS:           "ravel_gfm_css",
+    AssetMode:     "remote", // remote | local | inline
+    AssetBaseURL:  "/asset/",
+    ResolveAssetURL: nil,
+    Slots:         gfmit.RenderSlots{},
+    ExtraCSS:      "",
+    BodyClass:     "",
+    FooterHTML:    "",
+}
 ```
 
-The Go renderer uses the same wrapper options as the JavaScript API: `Title`, `Canonical`, `FallbackImage`, `CSS`, `AssetMode`, `AssetBaseURL`, `ResolveAssetURL`, `Slots`, `ExtraCSS`, `BodyClass`, and `FooterHTML`. It also derives SEO metadata from YAML front matter with the same priority rules documented above.
+Dynamic assets:
 
-The Go implementation intentionally uses the Go Markdown stack used by Post: `goldmark`, GFM, footnotes, GitHub alert callouts, KaTeX, and unsafe raw HTML rendering. Its generated wrapper and resource behavior match the JavaScript API, but the exact article HTML is parser-dependent and is not guaranteed to be byte-for-byte identical to the JavaScript renderer.
+| Trigger | Assets |
+| --- | --- |
+| always | selected base CSS |
+| at least two headings | `gfm_addons_css`, `gfm_addons_js` |
+| code block | highlight light/dark CSS; Go also injects `highlight_js` |
+| display math | KaTeX CSS |
+
+Go uses `goldmark`, GFM, footnotes, GitHub alert callouts, KaTeX, and unsafe raw HTML rendering. The wrapper options match the JavaScript API; parser output is not guaranteed to be byte-for-byte identical.
