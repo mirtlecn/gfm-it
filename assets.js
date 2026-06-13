@@ -4,67 +4,67 @@ export const assets = [
     "key": "ravel.gfm.css",
     "file": "assets/ravel.gfm.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/ravel.gfm.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/ravel.gfm.min.css"
   },
   {
     "key": "whitey.gfm.css",
     "file": "assets/whitey.gfm.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/whitey.gfm.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/whitey.gfm.min.css"
   },
   {
     "key": "newsprint.gfm.css",
     "file": "assets/newsprint.gfm.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/newsprint.gfm.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/newsprint.gfm.min.css"
   },
   {
     "key": "github.gfm.css",
     "file": "assets/github.gfm.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/github.gfm.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/github.gfm.min.css"
   },
   {
     "key": "folio.gfm.css",
     "file": "assets/folio.gfm.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/folio.gfm.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/folio.gfm.min.css"
   },
   {
     "key": "terminal.gfm.css",
     "file": "assets/terminal.gfm.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/terminal.gfm.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/terminal.gfm.min.css"
   },
   {
     "key": "highlight-light.css",
     "file": "assets/highlight-light.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/highlight-light.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/highlight-light.min.css"
   },
   {
     "key": "highlight-dark.css",
     "file": "assets/highlight-dark.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/highlight-dark.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/highlight-dark.min.css"
   },
   {
     "key": "highlight-core.js",
     "file": "assets/highlight-core.js",
     "contentType": "application/javascript; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/highlight-core.min.js"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/highlight-core.min.js"
   },
   {
     "key": "gfm-addons.css",
     "file": "assets/gfm-addons.css",
     "contentType": "text/css; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/gfm-addons.min.css"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/gfm-addons.min.css"
   },
   {
     "key": "gfm-addons.js",
     "file": "assets/gfm-addons.js",
     "contentType": "application/javascript; charset=utf-8",
-    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.2/assets/gfm-addons.min.js"
+    "remoteUrl": "https://cdn.jsdelivr.net/npm/gfm-it@0.3.3/assets/gfm-addons.min.js"
   }
 ];
 
