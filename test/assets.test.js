@@ -180,8 +180,9 @@ test('terminal theme covers every GitHub GFM selector without remote fonts', asy
   assert.match(terminalCss, /--terminal-body-foreground: #BFBDB6;/);
   assert.match(terminalCss, /\.markdown-body \{[\s\S]*color: var\(--terminal-body-foreground\);/);
   assert.match(terminalCss, /--terminal-list-indent: 1\.3ch;/);
-  assert.match(terminalCss, /--terminal-list-top-item-gap: \.7em;/);
-  assert.match(terminalCss, /--terminal-list-nested-gap: \.45em;/);
+  assert.match(terminalCss, /--terminal-ordered-list-indent: calc\(var\(--terminal-list-indent\) \+ 1\.6ch\);/);
+  assert.match(terminalCss, /--terminal-list-top-item-gap: \.35em;/);
+  assert.match(terminalCss, /--terminal-list-nested-gap: \.3em;/);
   assert.match(terminalCss, /--terminal-list-nested-indent: 1\.4ch;/);
   assert.match(terminalCss, /--gfm-image-frame-padding: var\(--terminal-image-frame-padding\);/);
   assert.match(terminalCss, /\.markdown-body img \{[\s\S]*box-sizing: border-box;/);
@@ -197,6 +198,8 @@ test('terminal theme covers every GitHub GFM selector without remote fonts', asy
   assert.doesNotMatch(terminalCss, /\.markdown-body blockquote::before/);
   assert.match(terminalCss, /\.markdown-body blockquote::after \{[\s\S]*var\(--terminal-accent\) 0 3px,[\s\S]*transparent 3px 6px/);
   assert.match(terminalCss, /\.markdown-body hr \{[\s\S]*border-top: 2px dashed var\(--terminal-accent\);/);
+  assert.match(terminalCss, /\.markdown-body ul \{\s*margin-left: var\(--terminal-list-indent\);/);
+  assert.match(terminalCss, /\.markdown-body ol \{\s*margin-left: var\(--terminal-ordered-list-indent\);/);
   assert.match(terminalCss, /\.markdown-body ul ul,[\s\S]*margin-top: var\(--terminal-list-nested-gap\);/);
   assert.match(terminalCss, /\.markdown-body>ul>li\+li,[\s\S]*margin-top: var\(--terminal-list-top-item-gap\);/);
 });

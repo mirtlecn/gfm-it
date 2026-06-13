@@ -23,8 +23,9 @@
     --terminal-image-frame-border-color: var(--terminal-accent);
     --terminal-image-frame-border-radius: var(--terminal-radius);
     --terminal-list-indent: 1.3ch;
-    --terminal-list-top-item-gap: .7em;
-    --terminal-list-nested-gap: .45em;
+    --terminal-ordered-list-indent: calc(var(--terminal-list-indent) + 1.6ch);
+    --terminal-list-top-item-gap: .35em;
+    --terminal-list-nested-gap: .3em;
     --terminal-list-nested-indent: 1.4ch;
     --terminal-list-nested-padding: 1.2ch;
     --terminal-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
@@ -560,8 +561,15 @@ body:has(.markdown-body) {
 .markdown-body ul,
 .markdown-body ol {
     margin: 25px 0;
-    margin-left: var(--terminal-list-indent);
     padding-left: 0;
+}
+
+.markdown-body ul {
+    margin-left: var(--terminal-list-indent);
+}
+
+.markdown-body ol {
+    margin-left: var(--terminal-ordered-list-indent);
 }
 
 .markdown-body ol ol,
